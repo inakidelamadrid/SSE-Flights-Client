@@ -1,26 +1,62 @@
 import React from 'react';
-import logo from './logo.svg';
+import ReactTable from 'react-table';
+import _ from 'lodash';
+import 'react-table/react-table.css';
+import { getInitialFlightData } from './DataProvider';
+
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      data: getInitialFlightData()
+    }
+    this.columns = [
+      {
+        Header: "Origin",
+        accessor: "origin"
+      },
+      {
+        Header: "Flight",
+        accessor: "flight"
+      },
+      {
+        Header: "Arrival",
+        accessor: "arrival"
+      },
+      {
+        Header: "State",
+        accessor: "state"
+      }
+    ];
+
+    // this is the object for the SSE protocol
+    this.eventSource = new EventSource("events");
+  }
+
+  updateFlightState(flightState){
+    let newData = _.map(this.state.data, item => {
+      if( item.flight === flightState.flight ){
+        item.state = flightState.state;
+      }
+      return item;
+    })
+    this.setState({data: newData});
+  }
+
+  componentDidMount(){
+    this.eventSource.onmessage = e =>
+      this.updateFlightState(JSON.parse(e.data));
+  }
+
+  render(){
+    return (
+      <div className="App">
+        <ReactTable data={this.state.data} columns={this.columns} />
+      </div>
+    );
+  }
 }
 
 export default App;
