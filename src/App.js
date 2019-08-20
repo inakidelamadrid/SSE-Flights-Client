@@ -32,7 +32,7 @@ class App extends React.Component {
     ];
 
     // this is the object for the SSE protocol
-    this.eventSource = new EventSource("events");
+    this.eventSource = new EventSource("http://localhost:5000/events");
   }
 
   updateFlightState(flightState){
